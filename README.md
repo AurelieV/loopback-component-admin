@@ -11,7 +11,10 @@ In `component-config.json` add
 ```
 With
 * userModel the name of your custom user model (by default User)
-* mongoHack a value to indicate the use of the mongo hack (useful if you use mongo and want to include roles when fetching user. See [this issue][https://github.com/strongloop/loopback/issues/1441]. You must have mongod in your dependencies.
+* mongoHack a value to indicate the use of the mongo hack (useful if you use mongo and want to include roles when fetching user. See [this issue](https://github.com/strongloop/loopback/issues/1441). You must have mongod in your dependencies.
+
+
+/!\ Use it BEFORE explorer component to see remote method added
 
 ## Result
 
