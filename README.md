@@ -2,6 +2,9 @@
 Component for [Loopback](http://loopback.io/), adding roles management to your User model.
 
 ## Usage
+```
+npm install --save loopback-component-roles
+```
 In `component-config.json` add
 ```
 "loopback-component-roles": {
