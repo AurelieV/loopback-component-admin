@@ -1,5 +1,7 @@
 # loopback-component-roles
 Component for [Loopback](http://loopback.io/), adding roles management to your User model.
+
+
 More about Loopback components [here](https://docs.strongloop.com/display/public/LB/LoopBack+components)
 
 ## Usage
