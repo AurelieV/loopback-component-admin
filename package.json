@@ -1,6 +1,6 @@
 {
   "name": "loopback-component-role-admin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Loopback component for create admin user managing roles",
   "main": "index.js",
   "scripts": {
