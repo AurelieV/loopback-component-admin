@@ -1,14 +1,14 @@
 {
-  "name": "loopback-component-role-admin",
-  "version": "0.1.1",
-  "description": "Loopback component for create admin user managing roles",
+  "name": "loopback-component-roles",
+  "version": "0.1.0",
+  "description": "Loopback component adding roles management to your User model",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AurelieV/loopback-component-role-admin.git"
+    "url": "git+https://github.com/AurelieV/loopback-component-roles.git"
   },
   "keywords": [
     "loopback",
@@ -18,9 +18,9 @@
   "author": "Aurélie VIOLETTE",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/AurelieV/loopback-component-role-admin/issues"
+    "url": "https://github.com/AurelieV/loopback-component-roles/issues"
   },
-  "homepage": "https://github.com/AurelieV/loopback-component-role-admin#readme",
+  "homepage": "https://github.com/AurelieV/loopback-component-roles#readme",
   "dependencies": {
     "bluebird": "^3.3.4",
     "lodash": "^4.6.1"
