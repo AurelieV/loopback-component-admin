@@ -1,25 +1,31 @@
-# loopback-component-role-admin
-Loopback component for create an admin user, and authorize role adding/deleting easily.
+# loopback-component-roles
+Component for [Loopback](http://loopback.io/), adding roles management to your User model.
 
 ## Usage
 In `component-config.json` add
 ```
-"loopback-component-role-admin": {
+"loopback-component-roles": {
+    "userModel": "MyUser"
+}
+```
+When `MyUser` is the name of your custom User model (by default, build-in User model will be used).
+
+## Warnings
+* If you want to see the method added in the explorer, take care of load the `loopback-component-explorer` after `loopback-component-roles`
+in `component-config.json`
+* There is currently [an open issue](https://github.com/strongloop/loopback/issues/1441) in the mongo datasource connector. 
+To be able to include roles when fetching user while using a mongo database, please use the following config
+```
+"loopback-component-roles": {
     "userModel": "MyUser",
     "mongoHack": true
-  }
+}
 ```
-With
-* userModel the name of your custom user model (by default User)
-* mongoHack a value to indicate the use of the mongo hack (useful if you use mongo and want to include roles when fetching user. See [this issue](https://github.com/strongloop/loopback/issues/1441). You must have mongod in your dependencies.
 
-
-/!\ Use it BEFORE explorer component to see remote method added
-
-## Result
-
-* You have now in MyUser model method addRole, removeRole and findByRole
-* A user `admin` (password `admin`) is created if not exist, and role `admin` is create if not exist
-* User `admin` has role `admin`
-* A user with role `admin` can edit, delete, view user, and add/remove roles
-* You can use {"include": "roles"} in your user filter to see roles
+## What does this component do?
+* Create a role `admin` if not exist
+* Create an `admin` user (password by default: `admin`) if not exist
+* Give role `admin` to `admin` user
+* Create ACLs to allow `admin` manipulate roles and users
+* Add relation `roles` to User model
+* Add remote methods `addRole`, `removeRole`, `findByRole` to User modela
