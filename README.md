@@ -19,14 +19,6 @@ When `MyUser` is the name of your custom User model (by default, build-in User m
 ## Warnings
 * If you want to see the method added in the explorer, take care of load the `loopback-component-explorer` after `loopback-component-roles`
 in `component-config.json`
-* There is currently [an open issue](https://github.com/strongloop/loopback/issues/1441) in the mongo datasource connector. 
-To be able to include roles when fetching user while using a mongo database, please use the following config
-```
-"loopback-component-roles": {
-    "userModel": "MyUser",
-    "mongoHack": true
-}
-```
 
 ## What does this component do?
 * Create a role `admin` if not exist
@@ -34,4 +26,4 @@ To be able to include roles when fetching user while using a mongo database, ple
 * Give role `admin` to `admin` user
 * Create ACLs to allow `admin` manipulate roles and users
 * Add relation `roles` to User model
-* Add remote methods `addRole`, `removeRole`, `findByRole` to User modela
+* Add remote methods `addRole`, `removeRole`, `findByRole`, `getRoles` to User model

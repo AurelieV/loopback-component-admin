@@ -2,53 +2,38 @@ var Promise = require('bluebird');
 var _ = require('lodash');
 var sendError = require('./utils').sendError;
 
-//@TODO: add options
 module.exports = function init(app, options) {
   if (!app) return new Promise.reject(new Error('App is not defined'));
-
   var ACL = app.models.ACL;
+
   var Role = app.models.Role;
+
   var RoleMapping = app.models.RoleMapping;
   var User = app.models[options.userModel] || app.models.User;
 
-  // Ugly hack for mongo error wainting bug fix for connector
-  if (options.mongoHack) {
-    RoleMapping.defineProperty('principalId', {type: function(id) {return require('mongodb').ObjectId(id + '');} });
-  }
-
-  // Add role to user
-  User.hasMany(Role, {foreignKey: 'principalId', through: RoleMapping, keyThrough: 'roleId'});
-
-  // Disable end point for role
-  User.disableRemoteMethod('__get__roles', false);
-  User.disableRemoteMethod('__create__roles', false);
-  User.disableRemoteMethod('__destroyById__roles', false); // DELETE
-  User.disableRemoteMethod('__updateById__roles', false); // PUT
-
   // Add method addRole to User
-  User.addRole = function(userId, role, next) {
+  User.addRole = function(id, role, next) {
     next = next || function() {};
     return Role.findOne({where: {name: role}})
       .then(function(role) {
         if (!role) return sendError(next, 'No role found', 404);
-        return RoleMapping.findOrCreate({principalType: RoleMapping.USER, principalId: userId, roleId: role.id});
+        return RoleMapping.findOrCreate({principalType: RoleMapping.USER, principalId: id, roleId: role.id});
       })
       .then(function (data) {
         next(null);
       })
       .catch(function (error) {
-        next(error);
-        return Promise.reject(error)
+        return sendError(next, 'Internal error', 500);
       })
   };
 
   // Add method removeRole to User
-  User.removeRole = function(userId, role, next) {
+  User.removeRole = function(id, role, next) {
     next = next || function() {};
     return Role.findOne({where: {name: role}})
       .then(function(role) {
         if (!role) return sendError(next, 'No role found', 404);
-        return RoleMapping.findOne({where:{principalType: RoleMapping.USER, principalId: userId, roleId: role.id}});
+        return RoleMapping.findOne({where:{principalType: RoleMapping.USER, principalId: id, roleId: role.id}});
       })
       .then(function (roleMapping) {
         if (!roleMapping) return;
@@ -58,8 +43,7 @@ module.exports = function init(app, options) {
         next(null);
       })
       .catch(function (error) {
-        next(error);
-        return Promise.reject(error)
+        return sendError(next, 'Internal error', 500);
       })
   };
 
@@ -79,16 +63,39 @@ module.exports = function init(app, options) {
         next(null, users);
       })
       .catch(function (error) {
-        next(error);
-        return Promise.reject(error)
+        return sendError(next, 'Internal error', 500);
       })
+  };
+
+  // Add method getRoles to User
+  User.getRoles = function(req, next) {
+    var userId = req.accessToken.userId;
+    if (!userId) {
+      return sendError(next, 'You are not connected', 401);
+    }
+    Role.getRoles({principalType: RoleMapping.USER, principalId: userId}, function(err, ids) {
+      if (err) {
+        return next(err);
+      }
+      Role.find({where: {id: {inq: ids}}})
+        .then(function (roles) {
+          var result = _.map(roles, 'name');
+          var dynamicRole = _.filter(ids, (id) => {return _.isString(id) && id.substr(0, 1) === '$'});
+          result = _.uniq(result.concat(dynamicRole));
+          next(null, result);
+          return result;
+        })
+        .catch(function(error) {
+          return sendError(next, 'Internal error', 500);
+        })
+    });
   };
 
   // Register remote method
   User.remoteMethod('addRole', {
     accepts: [
       {
-        arg: 'userId',
+        arg: 'id',
         type: 'string',
         required: true
       },
@@ -101,13 +108,14 @@ module.exports = function init(app, options) {
     returns: {}
     ,
     http: {
-      verb: 'post'
+      verb: 'post',
+      path: '/:id/addRole'
     }
   });
   User.remoteMethod('removeRole', {
     accepts: [
       {
-        arg: 'userId',
+        arg: 'id',
         type: 'string',
         required: true
       },
@@ -120,7 +128,8 @@ module.exports = function init(app, options) {
     returns: {}
     ,
     http: {
-      verb: 'post'
+      verb: 'post',
+      path: '/:id/removeRole'
     }
   });
   User.remoteMethod('findByRole', {
@@ -137,11 +146,30 @@ module.exports = function init(app, options) {
       verb: 'get'
     }
   });
+  User.remoteMethod('getRoles', {
+    accepts: [
+      {
+        arg: 'context',
+        type: 'object',
+        http: {source: 'req'},
+        required: true
+      }
+    ],
+    returns: {
+      arg: 'roles',
+      type: '[string]'
+    }
+    ,
+    http: {
+      verb: 'get',
+      path: '/roles'
+    }
+  });
 
   // Add ACL for role managing by admin
   var pUserACL = Promise.all([
     ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
       accessType: ACL.EXECUTE,
       principalType: ACL.ROLE,
       principalId: 'admin',
@@ -149,7 +177,15 @@ module.exports = function init(app, options) {
       property: 'addRole'
     })
     , ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
+      accessType: ACL.READ,
+      principalType: ACL.ROLE,
+      principalId: 'admin',
+      permission: ACL.ALLOW,
+      property: 'getRoles'
+    })
+    , ACL.findOrCreate({
+      model: User.modelName,
       accessType: ACL.EXECUTE,
       principalType: ACL.ROLE,
       principalId: 'admin',
@@ -157,7 +193,7 @@ module.exports = function init(app, options) {
       property: 'removeRole'
     })
     , ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
       accessType: ACL.READ,
       principalType: ACL.ROLE,
       principalId: 'admin',
@@ -165,7 +201,7 @@ module.exports = function init(app, options) {
       property: 'findByRole'
     })
     , ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
       accessType: ACL.EXECUTE,
       principalType: ACL.ROLE,
       principalId: 'admin',
@@ -173,7 +209,7 @@ module.exports = function init(app, options) {
       property: 'updateAttributes'
     })
     , ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
       accessType: ACL.ALL,
       principalType: ACL.ROLE,
       principalId: 'admin',
@@ -181,7 +217,7 @@ module.exports = function init(app, options) {
       property: 'deleteById'
     })
     , ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
       accessType: 'READ',
       principalType: ACL.ROLE,
       principalId: 'admin',
@@ -189,7 +225,7 @@ module.exports = function init(app, options) {
       property: 'find'
     })
     , ACL.findOrCreate({
-      model: 'MyUser',
+      model: User.modelName,
       accessType: 'READ',
       principalType: ACL.ROLE,
       principalId: 'admin',
