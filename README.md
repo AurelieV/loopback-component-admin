@@ -26,4 +26,7 @@ in `component-config.json`
 * Give role `admin` to `admin` user
 * Create ACLs to allow `admin` manipulate roles and users
 * Add relation `roles` to User model
-* Add remote methods `addRole`, `removeRole`, `findByRole`, `getRoles` to User model
+* Add remote methods `addRole`, `removeRole`, `findByRole`, `getAllRoles`, `getPersistedRoles` to User model
+
+## List of options
+TODO

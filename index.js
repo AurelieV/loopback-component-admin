@@ -21,6 +21,7 @@ module.exports = function init(app, options) {
       })
       .then(function (data) {
         next(null);
+        return null;
       })
       .catch(function (error) {
         return sendError(next, 'Internal error', 500);
@@ -41,6 +42,7 @@ module.exports = function init(app, options) {
       })
       .then(function (data) {
         next(null);
+        return null;
       })
       .catch(function (error) {
         return sendError(next, 'Internal error', 500);
@@ -61,14 +63,15 @@ module.exports = function init(app, options) {
       })
       .then(function (users) {
         next(null, users);
+        return users;
       })
       .catch(function (error) {
         return sendError(next, 'Internal error', 500);
       })
   };
 
-  // Add method getRoles to User
-  User.getRoles = function(req, next) {
+  // Add method getAllRoles to User
+  User.getAllRoles = function(req, next) {
     var userId = req.accessToken.userId;
     if (!userId) {
       return sendError(next, 'You are not connected', 401);
@@ -89,6 +92,28 @@ module.exports = function init(app, options) {
           return sendError(next, 'Internal error', 500);
         })
     });
+  };
+
+  // Add method getPersistedRoles to User
+  User.getPersistedRoles = function(id, next) {
+    next = next || function() {};
+    return RoleMapping.find({where: {principalType: 'USER', principalId: id}})
+      .then(function (roleMappings) {
+        var ids = _.uniq(_.map(roleMappings, 'roleId'));
+        if (ids.length > 0) {
+          return Role.find({where: {id: {inq: ids}}});
+        } else {
+          return [];
+        }
+      })
+      .then(function (roles) {
+        var result = _.map(roles, 'name');
+        next(null, result);
+        return result;
+      })
+      .catch(function (error) {
+        return sendError(next, 'Internal error', 500);
+      })
   };
 
   // Register remote method
@@ -146,7 +171,7 @@ module.exports = function init(app, options) {
       verb: 'get'
     }
   });
-  User.remoteMethod('getRoles', {
+  User.remoteMethod('getAllRoles', {
     accepts: [
       {
         arg: 'context',
@@ -157,7 +182,8 @@ module.exports = function init(app, options) {
     ],
     returns: {
       arg: 'roles',
-      type: '[string]'
+      type: '[string]',
+      root: true
     }
     ,
     http: {
@@ -165,42 +191,29 @@ module.exports = function init(app, options) {
       path: '/roles'
     }
   });
+  User.remoteMethod('getPersistedRoles', {
+    accepts: [
+      {
+        arg: 'id',
+        type: 'string',
+        required: true
+      }
+    ],
+    returns: {
+      arg: 'roles',
+      type: '[string]',
+      root: true
+    }
+    ,
+    http: {
+      verb: 'get',
+      path: '/:id/persistedRoles'
+    }
+  });
 
   // Add ACL for role managing by admin
   var pUserACL = Promise.all([
     ACL.findOrCreate({
-      model: User.modelName,
-      accessType: ACL.EXECUTE,
-      principalType: ACL.ROLE,
-      principalId: 'admin',
-      permission: ACL.ALLOW,
-      property: 'addRole'
-    })
-    , ACL.findOrCreate({
-      model: User.modelName,
-      accessType: ACL.READ,
-      principalType: ACL.ROLE,
-      principalId: 'admin',
-      permission: ACL.ALLOW,
-      property: 'getRoles'
-    })
-    , ACL.findOrCreate({
-      model: User.modelName,
-      accessType: ACL.EXECUTE,
-      principalType: ACL.ROLE,
-      principalId: 'admin',
-      permission: ACL.ALLOW,
-      property: 'removeRole'
-    })
-    , ACL.findOrCreate({
-      model: User.modelName,
-      accessType: ACL.READ,
-      principalType: ACL.ROLE,
-      principalId: 'admin',
-      permission: ACL.ALLOW,
-      property: 'findByRole'
-    })
-    , ACL.findOrCreate({
       model: User.modelName,
       accessType: ACL.EXECUTE,
       principalType: ACL.ROLE,
@@ -233,6 +246,52 @@ module.exports = function init(app, options) {
       property: 'findById'
     })
   ]);
+
+  // Trick to not lauch too much async call
+  pUserACL.then(function() {
+    return Promise.all([
+      ACL.findOrCreate({
+        model: User.modelName,
+        accessType: ACL.EXECUTE,
+        principalType: ACL.ROLE,
+        principalId: 'admin',
+        permission: ACL.ALLOW,
+        property: 'addRole'
+      })
+      , ACL.findOrCreate({
+        model: User.modelName,
+        accessType: ACL.READ,
+        principalType: ACL.ROLE,
+        principalId: '$authenticated',
+        permission: ACL.ALLOW,
+        property: 'getAllRoles'
+      })
+      , ACL.findOrCreate({
+        model: User.modelName,
+        accessType: ACL.EXECUTE,
+        principalType: ACL.ROLE,
+        principalId: 'admin',
+        permission: ACL.ALLOW,
+        property: 'removeRole'
+      })
+      , ACL.findOrCreate({
+        model: User.modelName,
+        accessType: ACL.READ,
+        principalType: ACL.ROLE,
+        principalId: 'admin',
+        permission: ACL.ALLOW,
+        property: 'getPersistedRoles'
+      })
+      , ACL.findOrCreate({
+        model: User.modelName,
+        accessType: ACL.READ,
+        principalType: ACL.ROLE,
+        principalId: 'admin',
+        permission: ACL.ALLOW,
+        property: 'findByRole'
+      })
+    ]);
+  });
 
   // Create admin role
   var pAdminRole = Role.findOrCreate({name: 'admin'}).then(function (data) {return data[0]});
