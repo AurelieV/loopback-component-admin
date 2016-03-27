@@ -182,8 +182,7 @@ module.exports = function init(app, options) {
     ],
     returns: {
       arg: 'roles',
-      type: '[string]',
-      root: true
+      type: '[string]'
     }
     ,
     http: {
@@ -201,8 +200,7 @@ module.exports = function init(app, options) {
     ],
     returns: {
       arg: 'roles',
-      type: '[string]',
-      root: true
+      type: '[string]'
     }
     ,
     http: {
