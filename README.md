@@ -17,7 +17,7 @@ In `component-config.json` add
     "roleMappingModel": "MyRoleMapping"
 }
 ```
-When `MyUser` is the name of your custom User model (by default, build-in User model will be used).
+Where `My*` are the name of your custom models (by default, build-in model will be used).
 
 ## Warnings
 * If you want to see the method added in the explorer, take care of load the `loopback-component-explorer` after `loopback-component-roles`
