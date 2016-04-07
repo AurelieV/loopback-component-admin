@@ -4,9 +4,9 @@ var sendError = require('./utils').sendError;
 
 module.exports = function init(app, options) {
   if (!app) return new Promise.reject(new Error('App is not defined'));
-  var ACL = app.models.ACL;
-  var Role = app.models.Role;
-  var RoleMapping = app.models.RoleMapping;
+  var ACL = options.aclModel ? app.models[options.aclModel] || app.models.ACL : app.models.ACL;
+  var Role = options.roleModel ? app.models[options.roleModel] || app.models.Role : app.models.Role;
+  var RoleMapping = options.roleMappingModel ? app.models[options.roleMappingModel] || app.models.RoleMapping : app.models.RoleMapping;
   var User = options.userModel ? app.models[options.userModel] || app.models.User : app.models.User;
   var adminEmail = options.adminEmail || 'test@test.fr';
 

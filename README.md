@@ -11,11 +11,14 @@ npm install --save loopback-component-roles
 In `component-config.json` add
 ```
 "loopback-component-roles": {
-    "userModel": "MyUser"
+    "userModel": "MyUser",
+    "aclModel": "MyACL",
+    "roleModel": "MyRole",
+    "roleMappingModel": "MyRoleMapping",
     "adminEmail": "admin@mon-domaine.fr"
 }
 ```
-* When `MyUser` is the name of your custom User model (by default, build-in User model will be used).
+* Where `My*` are the name of your custom models (by default, build-in model will be used).
 * `adminEmail` is the mail you want for admin account (by default, test@test.fr)
 * All options are optional
 
