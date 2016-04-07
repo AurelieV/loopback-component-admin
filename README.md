@@ -11,7 +11,10 @@ npm install --save loopback-component-roles
 In `component-config.json` add
 ```
 "loopback-component-roles": {
-    "userModel": "MyUser"
+    "userModel": "MyUser",
+    "aclModel": "MyACL",
+    "roleModel": "MyRole",
+    "roleMappingModel": "MyRoleMapping"
 }
 ```
 When `MyUser` is the name of your custom User model (by default, build-in User model will be used).

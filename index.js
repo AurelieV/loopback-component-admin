@@ -4,11 +4,9 @@ var sendError = require('./utils').sendError;
 
 module.exports = function init(app, options) {
   if (!app) return new Promise.reject(new Error('App is not defined'));
-  var ACL = app.models.ACL;
-
-  var Role = app.models.Role;
-
-  var RoleMapping = app.models.RoleMapping;
+  var ACL = app.models[options.aclModel] || app.models.ACL;
+  var Role = app.models[options.roleModel] || app.models.Role;
+  var RoleMapping = app.models[options.roleMappingModel] || app.models.RoleMapping;
   var User = app.models[options.userModel] || app.models.User;
 
   // Add method addRole to User
