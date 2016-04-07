@@ -5,11 +5,10 @@ var sendError = require('./utils').sendError;
 module.exports = function init(app, options) {
   if (!app) return new Promise.reject(new Error('App is not defined'));
   var ACL = app.models.ACL;
-
   var Role = app.models.Role;
-
   var RoleMapping = app.models.RoleMapping;
-  var User = app.models[options.userModel] || app.models.User;
+  var User = options.userModel ? app.models[options.userModel] || app.models.User : app.models.User;
+  var adminEmail = options.adminEmail || 'test@test.fr';
 
   // Add method addRole to User
   User.addRole = function(id, role, next) {
@@ -40,7 +39,7 @@ module.exports = function init(app, options) {
         if (!roleMapping) return;
         return roleMapping.destroy();
       })
-      .then(function (data) {
+      .then(function () {
         next(null);
         return null;
       })
@@ -80,10 +79,16 @@ module.exports = function init(app, options) {
       if (err) {
         return next(err);
       }
-      Role.find({where: {id: {inq: ids}}})
+      var dataIds = _.filter(ids, (id) => {return !_.isString(id) || id.substr(0, 1) !== '$'});
+      var dynamicRoles = _.filter(ids, (id) => {return _.isString(id) && id.substr(0, 1) === '$'});
+      // Treat this separately because if dataIds = [], all roles will be return by find request
+      if (dataIds.length === 0) {
+        next(null, dynamicRoles);
+        return Promise.resolve(dynamicRoles);
+      }
+      Role.find({where: {id: {inq: dataIds}}})
         .then(function (roles) {
           var result = _.map(roles, 'name');
-          var dynamicRole = _.filter(ids, (id) => {return _.isString(id) && id.substr(0, 1) === '$'});
           result = _.uniq(result.concat(dynamicRole));
           next(null, result);
           return result;
@@ -297,7 +302,7 @@ module.exports = function init(app, options) {
   var pAdminUser = User.findOrCreate({where: {username: 'admin'}},
     {
       username: 'admin',
-      email: 'pptq.calendar@gmail.com',
+      email: adminEmail,
       password: 'admin',
       emailVerified: true
     }).then(function (data) {return data[0]});

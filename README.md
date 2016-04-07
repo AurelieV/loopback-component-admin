@@ -12,9 +12,12 @@ In `component-config.json` add
 ```
 "loopback-component-roles": {
     "userModel": "MyUser"
+    "adminEmail": "admin@mon-domaine.fr"
 }
 ```
-When `MyUser` is the name of your custom User model (by default, build-in User model will be used).
+* When `MyUser` is the name of your custom User model (by default, build-in User model will be used).
+* `adminEmail` is the mail you want for admin account (by default, test@test.fr)
+* All options are optional
 
 ## Warnings
 * If you want to see the method added in the explorer, take care of load the `loopback-component-explorer` after `loopback-component-roles`

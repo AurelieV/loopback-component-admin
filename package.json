@@ -1,6 +1,6 @@
 {
   "name": "loopback-component-roles",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "description": "Loopback component adding roles management to your User model",
   "main": "index.js",
   "scripts": {
