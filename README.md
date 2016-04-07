@@ -30,9 +30,6 @@ in `component-config.json`
 * Create a role `admin` if not exist
 * Create an `admin` user (password by default: `admin`) if not exist
 * Give role `admin` to `admin` user
-* Create ACLs to allow `admin` manipulate roles and users
-* Add relation `roles` to User model
+* Create /!\ persisted /!\ ACLs to allow `admin` manipulate roles and users
 * Add remote methods `addRole`, `removeRole`, `findByRole`, `getAllRoles`, `getPersistedRoles` to User model
 
-## List of options
-TODO
