@@ -1,6 +1,6 @@
 # loopback-component-roles
 Component for [Loopback](http://loopback.io/), adding roles management to your User model.
-
+[![bitHound Dependencies](https://www.bithound.io/github/AurelieV/loopback-component-roles/badges/dependencies.svg)](https://www.bithound.io/github/AurelieV/loopback-component-roles/master/dependencies/npm)
 
 More about Loopback components [here](https://docs.strongloop.com/display/public/LB/LoopBack+components)
 

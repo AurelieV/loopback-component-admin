@@ -89,7 +89,7 @@ module.exports = function init(app, options) {
       Role.find({where: {id: {inq: dataIds}}})
         .then(function (roles) {
           var result = _.map(roles, 'name');
-          result = _.uniq(result.concat(dynamicRole));
+          result = _.uniq(result.concat(dynamicRoles));
           next(null, result);
           return result;
         })
